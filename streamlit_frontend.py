@@ -1,9 +1,18 @@
 import streamlit as st
-from langchain_backend import chatbot, llm
+from langchain_backend import (
+    chatbot,
+    llm,
+    retrieve_all_threads,
+    save_chat_title,
+    get_all_chat_titles
+)
 from langchain_core.messages import HumanMessage, AIMessage
 import uuid
 
-# ******************************** Utility Functions ********************************
+
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
 
 def generate_thread_id():
     return str(uuid.uuid4())
@@ -12,6 +21,7 @@ def generate_thread_id():
 def generate_chat_title(user_message):
 
     try:
+
         prompt = f"""
 Generate a short conversation title.
 
@@ -42,13 +52,10 @@ User message:
     return fallback
 
 
-def add_thread(thread_id, title="New Chat"):
+def add_thread(thread_id):
 
     if thread_id not in st.session_state["chat_threads"]:
         st.session_state["chat_threads"].append(thread_id)
-
-    if thread_id not in st.session_state["thread_titles"]:
-        st.session_state["thread_titles"][thread_id] = title
 
 
 def reset_chat():
@@ -58,7 +65,7 @@ def reset_chat():
     st.session_state["thread_id"] = thread_id
     st.session_state["message_history"] = []
 
-    add_thread(thread_id, "New Chat")
+    add_thread(thread_id)
 
 
 def load_conversation(thread_id):
@@ -74,7 +81,9 @@ def load_conversation(thread_id):
     return state.values.get("messages", [])
 
 
-# ******************************** Session State ********************************
+# ============================================================================
+# SESSION STATE
+# ============================================================================
 
 if "message_history" not in st.session_state:
     st.session_state["message_history"] = []
@@ -83,18 +92,26 @@ if "thread_id" not in st.session_state:
     st.session_state["thread_id"] = generate_thread_id()
 
 if "chat_threads" not in st.session_state:
-    st.session_state["chat_threads"] = []
+
+    # Load all existing thread IDs from SQLite
+    st.session_state["chat_threads"] = retrieve_all_threads()
 
 if "thread_titles" not in st.session_state:
-    st.session_state["thread_titles"] = {}
+
+    # Load all saved titles from SQLite
+    st.session_state["thread_titles"] = get_all_chat_titles()
 
 add_thread(st.session_state["thread_id"])
 
-# ******************************** Sidebar ********************************
+
+# ============================================================================
+# SIDEBAR
+# ============================================================================
 
 st.sidebar.title("SynapticOS")
 
 if st.sidebar.button("➕ New Chat"):
+
     reset_chat()
     st.rerun()
 
@@ -137,14 +154,19 @@ for thread_id in reversed(st.session_state["chat_threads"]):
 
         st.rerun()
 
-# ******************************** Main UI ********************************
+
+# ============================================================================
+# MAIN CHAT WINDOW
+# ============================================================================
 
 for message in st.session_state["message_history"]:
 
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-user_input = st.chat_input("Type your message...")
+user_input = st.chat_input(
+    "Type your message..."
+)
 
 if user_input:
 
@@ -157,16 +179,25 @@ if user_input:
 
     current_thread = st.session_state["thread_id"]
 
-    if (
-        st.session_state["thread_titles"].get(current_thread)
-        == "New Chat"
-    ):
+    # ============================================================
+    # GENERATE TITLE ONLY ON FIRST MESSAGE
+    # ============================================================
 
-        generated_title = generate_chat_title(user_input)
+    if current_thread not in st.session_state["thread_titles"]:
+
+        generated_title = generate_chat_title(
+            user_input
+        )
 
         st.session_state["thread_titles"][
             current_thread
         ] = generated_title
+
+        # Persist title in SQLite
+        save_chat_title(
+            current_thread,
+            generated_title
+        )
 
     with st.chat_message("user"):
         st.markdown(user_input)
@@ -181,23 +212,32 @@ if user_input:
 
         def ai_only_stream():
 
-            for message_chunk, metadata in chatbot.stream(
-                {
-                    "messages": [
-                        HumanMessage(
-                            content=user_input
-                        )
-                    ]
-                },
-                config=CONFIG,
-                stream_mode="messages"
-            ):
+            try:
 
-                if isinstance(
-                    message_chunk,
-                    AIMessage
+                for message_chunk, metadata in chatbot.stream(
+                    {
+                        "messages": [
+                            HumanMessage(
+                                content=user_input
+                            )
+                        ]
+                    },
+                    config=CONFIG,
+                    stream_mode="messages"
                 ):
-                    yield message_chunk.content
+
+                    if isinstance(
+                        message_chunk,
+                        AIMessage
+                    ):
+                        yield message_chunk.content
+
+            except Exception:
+
+                yield (
+                    "⚠️ Model temporarily unavailable. "
+                    "Please try again."
+                )
 
         ai_message = st.write_stream(
             ai_only_stream()
