@@ -157,9 +157,7 @@ def get_chat_title(
 
 
 def get_all_chat_titles():
-
     cursor = conn.cursor()
-
     cursor.execute(
         """
         SELECT thread_id, title

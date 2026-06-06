@@ -205,7 +205,11 @@ if user_input:
     CONFIG = {
         "configurable": {
             "thread_id": current_thread
-        }
+        },
+        "metadata":{
+            "thread_id":current_thread
+        },
+        "run_name":"chat_turn"
     }
 
     with st.chat_message("assistant"):
