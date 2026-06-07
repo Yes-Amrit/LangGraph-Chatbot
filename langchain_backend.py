@@ -174,7 +174,6 @@ def get_all_chat_titles():
     )
     rows = cursor.fetchall()
     return {thread_id: title for thread_id, title in rows}
-
 # Initialize tables & Checkpointer
 create_title_table()
 checkpointer = SqliteSaver(conn=conn)
@@ -185,11 +184,9 @@ checkpointer = SqliteSaver(conn=conn)
 
 def chat_node(state: ChatState):
     messages = state["messages"]
-
     try:
         response = invoke_with_retry(messages)
         return {"messages": [response]}
-
     except Exception as e:
         print("LLM ERROR:", e)
         # Return graceful error response
@@ -201,7 +198,6 @@ def chat_node(state: ChatState):
                 }
             ]
         }
-
 # Define the Tool Node
 tool_node = ToolNode(tools)
 
@@ -213,12 +209,10 @@ graph = StateGraph(ChatState)
 
 graph.add_node("chat_node", chat_node)
 graph.add_node("tools", tool_node)
-
 graph.add_edge(START, "chat_node")
 
 # Routing: If the LLM returns a tool_call, go to tools. Otherwise, END.
 graph.add_conditional_edges("chat_node", tools_condition)
-
 # Routing: Once the tools finish running, return their output to the chat_node
 graph.add_edge("tools", "chat_node")
 
