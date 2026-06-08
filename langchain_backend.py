@@ -60,7 +60,6 @@ def calculator(first_num: float, second_num: float, operation: str) -> dict:
         return {"first_num": first_num, "second_num": second_num, "operation": operation, "result": result}
     except Exception as e:
         return {"error": str(e)}
-
 @tool
 def get_stock_price(symbol: str) -> dict:
     """
@@ -75,11 +74,9 @@ tools = [search_tool, get_stock_price, calculator]
 
 # Bind tools to Gemini
 llm_with_tools = llm.bind_tools(tools)
-
 # =====================================================================================
 # 3. STATE DEFINITION
 # =====================================================================================
-
 class ChatState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
 
