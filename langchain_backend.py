@@ -85,7 +85,6 @@ class ChatState(TypedDict):
 
 def invoke_with_retry(messages):
     max_retries = 5
-
     for attempt in range(max_retries):
         try:
             # IMPORTANT: Using llm_with_tools here so Gemini can use the tools
