@@ -89,14 +89,12 @@ def invoke_with_retry(messages):
         try:
             # IMPORTANT: Using llm_with_tools here so Gemini can use the tools
             return llm_with_tools.invoke(messages)
-
         except (
             ResourceExhausted,
             ServiceUnavailable,
             InternalServerError,
             DeadlineExceeded
         ) as e:
-
             # If all retries exhausted
             if attempt == max_retries - 1:
                 raise e
