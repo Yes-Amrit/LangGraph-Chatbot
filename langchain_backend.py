@@ -36,9 +36,7 @@ llm = ChatGoogleGenerativeAI(
 # =====================================================================================
 # 2. TOOLS DEFINITION
 # =====================================================================================
-
 search_tool = DuckDuckGoSearchRun(region="us-en")
-
 @tool
 def calculator(first_num: float, second_num: float, operation: str) -> dict:
     """
