@@ -112,9 +112,7 @@ def invoke_with_retry(messages):
 # ============================================================
 # 5. DB & CHAT TITLE STORAGE
 # ============================================================
-
 conn = sqlite3.connect(database='chatbot.db', check_same_thread=False)
-
 def create_title_table():
     cursor = conn.cursor()
     cursor.execute("""
