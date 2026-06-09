@@ -122,7 +122,6 @@ def create_title_table():
         )
     """)
     conn.commit()
-
 def save_chat_title(thread_id: str, title: str):
     cursor = conn.cursor()
     cursor.execute(
