@@ -133,7 +133,6 @@ def save_chat_title(thread_id: str, title: str):
         (thread_id, title)
     )
     conn.commit()
-
 def get_chat_title(thread_id: str):
     cursor = conn.cursor()
     cursor.execute(
