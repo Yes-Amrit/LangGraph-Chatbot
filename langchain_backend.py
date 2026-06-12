@@ -71,7 +71,6 @@ def get_stock_price(symbol: str) -> dict:
     return r.json()
 
 tools = [search_tool, get_stock_price, calculator]
-
 # Bind tools to Gemini
 llm_with_tools = llm.bind_tools(tools)
 # =====================================================================================
