@@ -98,7 +98,6 @@ def invoke_with_retry(messages):
                 raise e
             # Exponential backoff: 1s → 2s → 4s → 8s → 16s
             wait_time = 2 ** attempt
-
             print(
                 f"[Retry {attempt + 1}/{max_retries}] "
                 f"Gemini overloaded. Waiting {wait_time}s..."
