@@ -96,7 +96,6 @@ def invoke_with_retry(messages):
             # If all retries exhausted
             if attempt == max_retries - 1:
                 raise e
-
             # Exponential backoff: 1s → 2s → 4s → 8s → 16s
             wait_time = 2 ** attempt
 
